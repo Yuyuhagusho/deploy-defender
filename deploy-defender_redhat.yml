@@ -3,17 +3,10 @@
   hosts: all
   become: yes
   gather_facts: false
-  vars:
-    ansible_python_interpreter: /usr/libexec/platform-python
   tasks:
     - name: Install prerequisite packages
-      ansible.builtin.dnf:
-        name:
-          - curl
-          - ca-certificates
-        state: present
-        update_cache: yes
-
+      ansible.builtin.raw: dnf install -y curl ca-certificates
+      changed_when: false
     - name: Add Microsoft GPG key
       apt_key:
         url: https://packages.microsoft.com/keys/microsoft.asc
