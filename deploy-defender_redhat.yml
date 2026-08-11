@@ -2,11 +2,9 @@
 - name: Deploy and Onboard Microsoft Defender on Linux
   hosts: all
   become: yes
+  vars:
+    ansible_python_interpreter: /usr/libexec/platform-python
   tasks:
-    - name: Ensure python3-dnf
-      raw: dnf install -y  python3-dnf python3-dnf
-      changed_when: false
-
     - name: Install prerequisite packages
       ansible.builtin.dnf:
         name:
