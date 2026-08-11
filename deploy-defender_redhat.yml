@@ -3,9 +3,15 @@
   hosts: all
   become: yes
   tasks:
+    - name: Ensure python3-dnf
+      raw: dnf install -y  python3-dnf python39-dnf
+      changed_when: false
 
     - name: Install prerequisite packages
-      dnf:
+      ansible.builtin.dnf:
+        name:
+          - curl
+	  - ca-certificates
         update_cache: yes
 
     - name: Add Microsoft GPG key
