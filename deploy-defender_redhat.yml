@@ -12,6 +12,7 @@
         name:
           - curl
 	  - ca-certificates
+        state: present
         update_cache: yes
 
     - name: Add Microsoft GPG key
