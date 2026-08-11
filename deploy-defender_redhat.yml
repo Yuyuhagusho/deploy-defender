@@ -5,7 +5,7 @@
   tasks:
 
     - name: Install prerequisite packages
-      apt:
+      dnf:
         update_cache: yes
 
     - name: Add Microsoft GPG key
