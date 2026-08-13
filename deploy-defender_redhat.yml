@@ -44,7 +44,3 @@
       command: mdatp health
       register: mdatp_health
       changed_when: false
-
-    - name: Display Defender Status
-      debug:
-        var: mdatp_health.stdout_lines
