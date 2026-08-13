@@ -7,23 +7,17 @@
     - name: Install prerequisite packages
       ansible.builtin.raw: dnf install -y curl ca-certificates
       changed_when: false
+      
     - name: Add Microsoft GPG key
-      apt_key:
-        url: https://packages.microsoft.com/keys/microsoft.asc
-        state: present
-
+      ansible.builtin.raw: rpm --import https://packages.microsoft.com/keys/microsoft.asc
+      changed_when: false
     - name: Add Microsoft Defender repository
-      apt_repository:
-        repo: "deb [arch=amd64] https://packages.microsoft.com/ubuntu/22.04/prod jammy main"
-        state: present
-        filename: microsoft-prod
-
+      ansible.builtin.raw: curl -o /etc/yum.repos.d/microsoft-prod.repo https://packages.microsoft.com/config/rhel/8/prod.repo
+      changed_when: false
     - name: Install Microsoft Defender (mdatp)
-      apt:
-        name: mdatp
-        state: latest
-        update_cache: yes
-
+      ansible.builtin.raw: dnf install -y mdatp
+      changed_when: false
+      
     - name: Copy Onboarding Script to Target Machine
       copy:
         src: MicrosoftDefenderATPOnboardingLinuxServer.py
