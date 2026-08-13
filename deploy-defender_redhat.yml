@@ -12,7 +12,7 @@
       changed_when: false
       
     - name: Install prerequisite packages
-      ansible.builtin.raw: yum install -y curl ca-certificates
+      ansible.builtin.raw: yum install -y curl ca-certificates python python3 2>/dev/null || yum install -y curl ca-certificates python
       changed_when: false
       
     - name: Add Microsoft GPG key
