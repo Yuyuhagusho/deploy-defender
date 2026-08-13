@@ -3,8 +3,6 @@
   hosts: all
   become: yes
   gather_facts: false
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
     
   tasks:
     - name: Fix CentOS Stream 8 EOL repositories to use Vault
