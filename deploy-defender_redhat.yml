@@ -3,6 +3,9 @@
   hosts: all
   become: yes
   gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    
   tasks:
     - name: Fix CentOS Stream 8 EOL repositories to use Vault
       ansible.builtin.raw: |
@@ -28,10 +31,12 @@
       changed_when: false
       
     - name: Copy Onboarding Script to Target Machine
-      ansible.builtin.copy:
-        src: MicrosoftDefenderATPOnboardingLinuxServer.py
-        dest: /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
-        mode: '0755'
+      ansible.builtin.raw: |
+        cat << 'EOF' > /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+        {{ lookup('file', 'MicrosoftDefenderATPOnboardingLinuxServer.py') }}
+        EOF
+        chmod +x /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+      changed_when: false
 
     - name: Run Onboarding Script
       ansible.builtin.raw: python3 /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
