@@ -41,6 +41,5 @@
       changed_when: false
 
     - name: Check mdatp status
-      command: mdatp health
-      register: mdatp_health
+      ansible.builtin.raw: mdatp health
       changed_when: false
