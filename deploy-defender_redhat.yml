@@ -22,13 +22,14 @@
       changed_when: false
       
     - name: Copy Onboarding Script to Target Machine
-      copy:
+      ansible.builtin.copy:
         src: MicrosoftDefenderATPOnboardingLinuxServer.py
         dest: /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
         mode: '0755'
 
     - name: Run Onboarding Script
       command: python3 /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+      changed_when: false
 
     - name: Check mdatp status
       command: mdatp health
