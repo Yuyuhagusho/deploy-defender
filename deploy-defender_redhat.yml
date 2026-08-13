@@ -11,9 +11,12 @@
     - name: Add Microsoft GPG key
       ansible.builtin.raw: rpm --import https://packages.microsoft.com/keys/microsoft.asc
       changed_when: false
+      
     - name: Add Microsoft Defender repository
-      ansible.builtin.raw: curl -o /etc/yum.repos.d/microsoft-prod.repo https://packages.microsoft.com/config/rhel/8/prod.repo
+      ansible.builtin.raw: |
+        curl -o /etc/yum.repos.d/microsoft-prod.repo https://packages.microsoft.com/config/rhel/8/prod.repo
       changed_when: false
+      
     - name: Install Microsoft Defender (mdatp)
       ansible.builtin.raw: dnf install -y mdatp
       changed_when: false
