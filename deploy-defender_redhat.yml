@@ -34,12 +34,13 @@
         mode: '0755'
 
     - name: Run Onboarding Script
-      command: python3 /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+      ansible.builtin.raw: python3 /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
       changed_when: false
 
     - name: Check mdatp status
       command: mdatp health
       register: mdatp_health
+      changed_when: false
 
     - name: Display Defender Status
       debug:
