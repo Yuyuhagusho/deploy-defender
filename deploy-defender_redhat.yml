@@ -12,12 +12,12 @@
       changed_when: false
     - name: Add Microsoft GPG key
       ansible.builtin.raw: |
-        curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/microsoft.gpg
+        curl -sSL --retry 5 --retry-delay 3 https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/microsoft.gpg
         changed_when: false
 
     - name: Add Microsoft Defender repository
       ansible.builtin.raw: |
-        curl -sSL https://packages.microsoft.com/config/ubuntu/22.04/prod.list -o /etc/apt/sources.list.d/microsoft-prod.list
+        curl -sSL --retry 5 --retry-delay 3 https://packages.microsoft.com/config/ubuntu/22.04/prod.list -o /etc/apt/sources.list.d/microsoft-prod.list
       changed_when: false  
 
     - name: Install Microsoft Defender (mdatp)
