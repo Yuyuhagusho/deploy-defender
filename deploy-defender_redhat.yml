@@ -25,7 +25,7 @@
       changed_when: false
       
     - name: Install Microsoft Defender (mdatp)
-      ansible.builtin.raw: dnf install -y mdatp
+      ansible.builtin.raw: yum install -y mdatp
       changed_when: false
       
     - name: Copy Onboarding Script to Target Machine
