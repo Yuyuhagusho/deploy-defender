@@ -3,40 +3,43 @@
   hosts: all
   become: yes
   gather_facts: false
+    
   tasks:
-    - name: Install prerequisite packages
-      ansible.builtin.raw: dnf install -y curl ca-certificates
+    - name: Fix CentOS Stream 7 EOL repositories to use Vault
+      ansible.builtin.raw: |
+        sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* 2>/dev/null || true
+        sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* 2>/dev/null || true
       changed_when: false
+      
+    - name: Install prerequisite packages
+      ansible.builtin.raw: yum install -y curl ca-certificates python python3 2>/dev/null || yum install -y curl ca-certificates python
+      changed_when: false
+      
     - name: Add Microsoft GPG key
-      apt_key:
-        url: https://packages.microsoft.com/keys/microsoft.asc
-        state: present
-
+      ansible.builtin.raw: rpm --import https://packages.microsoft.com/keys/microsoft.asc
+      changed_when: false
+      
     - name: Add Microsoft Defender repository
-      apt_repository:
-        repo: "deb [arch=amd64] https://packages.microsoft.com/ubuntu/22.04/prod jammy main"
-        state: present
-        filename: microsoft-prod
-
+      ansible.builtin.raw: |
+        curl -o /etc/yum.repos.d/microsoft-prod.repo https://packages.microsoft.com/config/rhel/8/prod.repo
+      changed_when: false
+      
     - name: Install Microsoft Defender (mdatp)
-      apt:
-        name: mdatp
-        state: latest
-        update_cache: yes
-
+      ansible.builtin.raw: yum install -y mdatp
+      changed_when: false
+      
     - name: Copy Onboarding Script to Target Machine
-      copy:
-        src: MicrosoftDefenderATPOnboardingLinuxServer.py
-        dest: /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
-        mode: '0755'
+      ansible.builtin.raw: |
+        cat << 'EOF' > /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+        {{ lookup('file', 'MicrosoftDefenderATPOnboardingLinuxServer.py') }}
+        EOF
+        chmod +x /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+      changed_when: false
 
     - name: Run Onboarding Script
-      command: python3 /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+      ansible.builtin.raw: python3 /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+      changed_when: false
 
     - name: Check mdatp status
-      command: mdatp health
-      register: mdatp_health
-
-    - name: Display Defender Status
-      debug:
-        var: mdatp_health.stdout_lines
+      ansible.builtin.raw: mdatp health
+      changed_when: false
