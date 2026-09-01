@@ -4,17 +4,19 @@
   gather_facts: false
 
   tasks:
-    - name: Fix CentOS Stream 8 EOL repositories to use Vault (if applicable)
+    - name: Fix EOL repositories and enable vault repos
       ansible.builtin.raw: |
-        if ls /etc/yum.repos.d/CentOS-* >/dev/null 2>&1; then
-          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* 2>/dev/null || true
-          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* 2>/dev/null || true
+        if [ -d /etc/yum.repos.d ]; then
+          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/*.repo 2>/dev/null || true
+          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/*.repo 2>/dev/null || true
+          sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/*.repo 2>/dev/null || true
+          sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/*.repo 2>/dev/null || true
         fi
       changed_when: false
 
     - name: Install required packages (curl, gnupg, python3)
       ansible.builtin.raw: |
-        dnf install -y curl gnupg2 python3 || yum install -y curl gnupg2 python3
+        dnf install --disablerepo=* --enablerepo=appstream --enablerepo=baseos -y curl gnupg2 python3 || dnf install -y curl gnupg2 python3 || yum install -y curl gnupg2 python3
       changed_when: false
 
     - name: Add Microsoft GPG key
