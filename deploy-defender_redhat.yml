@@ -4,19 +4,37 @@
   gather_facts: false
 
   tasks:
-    - name: Fix EOL repositories and enable vault repos
+    - name: Clean up ALL existing repository files
       ansible.builtin.raw: |
-        if [ -d /etc/yum.repos.d ]; then
-          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/*.repo 2>/dev/null || true
-          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/*.repo 2>/dev/null || true
-          sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/*.repo 2>/dev/null || true
-          sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/*.repo 2>/dev/null || true
-        fi
+        rm -rf /etc/yum.repos.d/*.repo
       changed_when: false
 
-    - name: Install required packages (curl, gnupg, python3)
+    - name: Set up clean CentOS 8 Vault repository
       ansible.builtin.raw: |
-        dnf install --disablerepo=* --enablerepo=appstream --enablerepo=baseos -y curl gnupg2 python3 || dnf install -y curl gnupg2 python3 || yum install -y curl gnupg2 python3
+        cat << 'EOF' > /etc/yum.repos.d/centos-vault.repo
+        [vault-baseos]
+        name=CentOS Stream 8 - BaseOS Vault
+        baseurl=http://vault.centos.org/centos/8-stream/BaseOS/x86_64/os/
+        gpgcheck=0
+        enabled=1
+
+        [vault-appstream]
+        name=CentOS Stream 8 - AppStream Vault
+        baseurl=http://vault.centos.org/centos/8-stream/AppStream/x86_64/os/
+        gpgcheck=0
+        enabled=1
+        EOF
+      changed_when: false
+
+    - name: Clean DNF cache thoroughly
+      ansible.builtin.raw: |
+        dnf clean all --enablerepo=*
+        rm -rf /var/cache/dnf /var/cache/yum
+      changed_when: false
+
+    - name: Install required prerequisites (curl, gnupg, python3)
+      ansible.builtin.raw: |
+        dnf install -y --disablerepo=* --enablerepo=vault-baseos,vault-appstream curl gnupg2 python3
       changed_when: false
 
     - name: Add Microsoft GPG key
@@ -24,14 +42,14 @@
         rpm --import https://packages.microsoft.com/keys/microsoft.asc
       changed_when: false
 
-    - name: Add Microsoft Defender repository for RHEL/CentOS
+    - name: Add Microsoft Defender repository
       ansible.builtin.raw: |
         curl -sSL -o /etc/yum.repos.d/microsoft-prod.repo https://packages.microsoft.com/config/rhel/8/prod.repo
       changed_when: false
 
-    - name: Update package cache and install mdatp
+    - name: Install Microsoft Defender (mdatp)
       ansible.builtin.raw: |
-        dnf makecache && dnf install -y mdatp || yum install -y mdatp
+        dnf install -y --disablerepo=* --enablerepo=vault-baseos,vault-appstream,packages-microsoft-com-prod mdatp
       changed_when: false
 
     - name: Transfer Onboarding Script
