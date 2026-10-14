@@ -1,44 +1,45 @@
 ---
-- name: Deploy and Onboard Microsoft Defender on Linux
-  hosts: all
+- hosts: all
   become: yes
   gather_facts: false
+
   tasks:
     - name: Install prerequisite packages
       ansible.builtin.raw: |
-        DEBIAN_FRONTEND=noninteractive apt-get update && \
-        DEBIAN_FRONTEND=noninteractive apt-get --fix-broken install -y && \
-        DEBIAN_FRONTEND=noninteractive apt-get install -y curl apt-transport-https gnupg python3
+        sudo DEBIAN_FRONTEND=noninteractive apt-get update -y && \
+        sudo DEBIAN_FRONTEND=noninteractive apt-get --fix-broken install -y && \
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y curl apt-transport-https gnupg python3
       changed_when: false
+
     - name: Add Microsoft GPG key
       ansible.builtin.raw: |
-        curl -sSL --retry 5 --retry-delay 3 https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/microsoft.gpg
-        changed_when: false
-
-    - name: Add Microsoft Defender repository
-      ansible.builtin.raw: |
-        curl -sSL --retry 5 --retry-delay 3 https://packages.microsoft.com/config/ubuntu/22.04/prod.list -o /etc/apt/sources.list.d/microsoft-prod.list
-      changed_when: false  
-
-    - name: Install Microsoft Defender (mdatp)
-      ansible.builtin.raw: |
-        DEBIAN_FRONTEND=noninteractive apt-get update && \
-        DEBIAN_FRONTEND=noninteractive apt-get install -y mdatp
+        sudo mkdir -p /etc/apt/keyrings
+        curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg --yes
       changed_when: false
 
-    - name: Copy Onboarding Script to Target Machine
+    - name: Add Microsoft Defender repository for Debian 11
       ansible.builtin.raw: |
-        cat << 'EOF' > /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+      changed_when: false
+
+    - name: Update apt cache and install mdatp
+      ansible.builtin.raw: |
+        sudo DEBIAN_FRONTEND=noninteractive apt-get update -y && \
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y mdatp
+      changed_when: false
+
+    - name: Transfer Onboarding Script
+      ansible.builtin.raw: |
+        cat << 'EOF' | sudo tee /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py > /dev/null
         {{ lookup('file', 'MicrosoftDefenderATPOnboardingLinuxServer.py') }}
         EOF
-        chmod +x /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+        sudo chmod +x /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
       changed_when: false
 
     - name: Run Onboarding Script
-      ansible.builtin.raw: python3 /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
+      ansible.builtin.raw: sudo python3 /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py
       changed_when: false
-      
+
     - name: Check mdatp status
       ansible.builtin.raw: mdatp health
       changed_when: false
-
